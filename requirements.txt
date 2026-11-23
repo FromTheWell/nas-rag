@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+httpx
+qdrant-client
+pypdf
+python-docx
+faster-whisper
+anthropic

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>NAS RAG</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+ body{font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem}
+ textarea,input,select,button{font:inherit;padding:.5rem;margin:.25rem 0}
+ textarea{width:100%;box-sizing:border-box}
+ pre{white-space:pre-wrap;background:#f4f4f4;padding:1rem;border-radius:6px}
+ fieldset{margin:1rem 0;border:1px solid #ccc;border-radius:6px}
+</style></head><body>
+<h1>NAS RAG</h1>
+<label>API key <input id="tok" type="password" placeholder="APP_TOKEN"></label>
+
+<fieldset><legend>Preguntar</legend>
+ <textarea id="q" rows="3" placeholder="¿Qué se decidió en la reunión de…?"></textarea><br>
+ <select id="prov"><option>claude</option><option>groq</option><option>gemini</option><option>openrouter</option></select>
+ <button onclick="ask()">Preguntar</button>
+ <pre id="out"></pre>
+</fieldset>
+
+<fieldset><legend>Subir documento</legend>
+ <input id="f" type="file"> <button onclick="up()">Subir</button> <span id="upmsg"></span>
+</fieldset>
+
+<script>
+const H = () => ({'X-API-Key': document.getElementById('tok').value});
+async function ask(){
+  const out = document.getElementById('out'); out.textContent = 'Pensando…';
+  const r = await fetch('/ask',{method:'POST',headers:{...H(),'Content-Type':'application/json'},
+    body:JSON.stringify({question:q.value,provider:prov.value})});
+  const j = await r.json();
+  out.textContent = r.ok ? j.answer + '\n\nFuentes:\n' + j.sources.map(s=>`[${s.n}] ${s.source} ${s.loc}`).join('\n') : (j.detail||'Error');
+}
+async function up(){
+  const fd = new FormData(); fd.append('file', f.files[0]);
+  const r = await fetch('/upload',{method:'POST',headers:H(),body:fd});
+  upmsg.textContent = r.ok ? 'Subido, indexando…' : 'Error';
+}
+</script></body></html>

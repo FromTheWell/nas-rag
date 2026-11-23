@@ -1,0 +1,26 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: rag-qdrant
+    restart: unless-stopped
+    volumes:
+      - ${DATA_DIR}/qdrant:/qdrant/storage
+
+  rag:
+    build: .
+    container_name: rag-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      INBOX_DIR: /data/inbox
+      STATE_DIR: /data/state
+      HF_HOME: /data/cache
+    ports:
+      - "8088:8000"
+    volumes:
+      - ${DATA_DIR}/inbox:/data/inbox      # aquí depositas PDFs, audios, vídeos...
+      - ${DATA_DIR}/state:/data/state      # registro de ficheros ya indexados
+      - ${DATA_DIR}/cache:/data/cache      # modelo Whisper descargado
+    depends_on:
+      - qdrant
